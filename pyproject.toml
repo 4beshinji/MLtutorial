@@ -1,0 +1,17 @@
+[project]
+name = "mltutorial"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "jupyterlab>=4.3.5",
+    "matplot>=0.1.9",
+    "pandas>=2.2.3",
+    "plotly>=6.0.0",
+    "scikit-learn>=1.6.1",
+    "scipy>=1.15.2",
+    "seaborn>=0.13.2",
+    "torch>=2.6.0",
+    "torchvision>=0.21.0",
+]
