@@ -24,46 +24,47 @@ https://bi.biopapyrus.jp/rnaseq/exp/fastq-data/
 https://illumination-k.dev/techblog/post/da91fbca-0240-45b9-b299-faddaae28346
 各種データ形式と変換についてはこれがよくまとまっている
 
->**fastq**
+**fastq**
 NGS解析で一番最初に作成されるファイルフォーマット。厳密には画像データが一次データですが、多分シーケンサーを持っていてそこからデータを直接扱っていない限りはこれ以前のファイルは見ないんじゃないんでしょうか。
 fastqファイルには、NGSで読まれたリードの名前を示す@から始まるヘッダ行、配列、配列のクオリティが記載されています。また、配列と配列クオリティを分けるために+から始まるヘッダ行が配列と配列クオリティの間に置かれています。fastaフォーマットとは違い、配列、配列クオリティ行内では改行が許されていません。
 
->**fastq sample**
-例えばNCBIのSRAに存在するfastqは以下のようなフォーマットになります。
-@SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36
-GGGTGATGGCCGCTGCCGATGGCGTCAAATCCCACC
-+SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36
-IIIIIIIIIIIIIIIIIIIIIIIIIIIIII9IG9IC
+**fastq sample**
+例えばNCBIのSRAに存在するfastqは以下のようなフォーマットになります。  
+@SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36  
+GGGTGATGGCCGCTGCCGATGGCGTCAAATCCCACC  
++SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36  
+IIIIIIIIIIIIIIIIIIIIIIIIIIIIII9IG9IC  
 配列には、AGCTNのみが許されており、配列クオリティには、Phredクオリティスコア（下の式）というものが使われています。基本的に高いほどシーケンサーのエラーである可能性が低いです。最近のバージョンではサンガーの式が使われていますが、Wikipediaによるとオッズ比などが使われていることもあるそうです。実際には数字ではなくASCIIコードで33から126の文字としてエンコーディングされます。このエンコーディングはSAM/BAMフォーマットでも共通のものです。
 Q=−10log10pQ=−10log10​p
 このファイルフォーマットはクオリティコントロール程度にしか使われず、基本的にはSAM/BAMに変換してから扱うことが多い印象です。最近ではRNA-seqなどにはSAM/BAMを介さずそのまま発現量測定などをすることもあります
 
-このままn-gramにしてBERTやるのがDNABERTのアプローチらしい？
+>注：このままn-gramにしてBERTやるのがDNABERTのアプローチらしい？
 nの数によって異なる生物学的意味合いが生じるため適当に決めるのはよくない
 
->**SAM/BAM/CRAM**
+**SAM/BAM/CRAM**
 マッピングを行ったあと扱うようになるファイルフォーマットです。BAMはSAMをバイナリ化したものでフォーマットとしては同一です。CRAMはfasta情報を使って更に圧縮率を上げることができるフォーマットです。あまりSAMのまま扱うことはなく、BAM/CRAMに変換されることが多いです。リードのヘッダ、配列、クオリティ、マッピング位置などほぼすべての情報が格納されている。
 
->**SAM sample**
+**SAM sample**
 例としてはこんな感じです。@から始まるヘッダ行とリードの情報が格納されているボディ部分に分かれています。
-@HD VN:1.6 SO:coordinate
-@SQ SN:ref LN:45
-r001 99 ref 7 30 8M2I4M1D3M = 37 39 TTAGATAAAGGATACTG *
-r002 0 ref 9 30 3S6M1P1I4M * 0 0 AAAAGATAAGGATA *
-r003 0 ref 9 30 5S6M * 0 0 GCCTAAGCTAA * SA:Z:ref,29,-,6H5M,17,0;
-r004 0 ref 16 30 6M14N5M * 0 0 ATAGCTTCAGC *
-r003 2064 ref 29 17 6H5M * 0 0 TAGGC * SA:Z:ref,9,+,5S6M,30,1;
-r001 147 ref 37 30 9M = 7 -39 CAGCGGCAT * NM:i:1
+
+@HD VN:1.6 SO:coordinate  
+@SQ SN:ref LN:45  
+r001 99 ref 7 30 8M2I4M1D3M = 37 39 TTAGATAAAGGATACTG *  
+r002 0 ref 9 30 3S6M1P1I4M * 0 0 AAAAGATAAGGATA *  
+r003 0 ref 9 30 5S6M * 0 0 GCCTAAGCTAA * SA:Z:ref,29,-,6H5M,17,0;  
+r004 0 ref 16 30 6M14N5M * 0 0 ATAGCTTCAGC *  
+r003 2064 ref 29 17 6H5M * 0 0 TAGGC * SA:Z:ref,9,+,5S6M,30,1;  
+r001 147 ref 37 30 9M = 7 -39 CAGCGGCAT * NM:i:1  
 
 シーケンサで読んだゲノムがリファレンスゲノムのどの部分に当たるかをマッピングしたデータ
 
->**発現量の定量 (bam -> csv etc.,)**
+**発現量の定量 (bam -> csv etc.,)**
 RNA-seqを行った後に行う代表的な解析は、発現量の定量です。ツールとしては色々ありますが、代表的そうなものを紹介します。cuffdiffなんかは有名ですが使用は推奨されていないようです。
 
-stempantoxで頂いているデータはこれ？
-
+>注：stempantoxで頂いているデータはこれ？
 CSVに持っていくまでがかなり苦しいので、既存データセットを利用しない論文のかなりのウェイトがデータセット作成に置かれている気持ちを理解
 
+## データの扱いに慣れる
 https://medium.com/@manabeel.vet/a-beginners-guide-to-genomic-data-analysis-dive-into-genomic-data-collection-with-ncbi-datasets-3d3f47dfd7cf
 線虫（扱いやすさと規模の小ささから神経発達についてのモデル生物）のゲノムを用いて一通りのゲノムデータ分析を行うチュートリアル
 直接的に機械学習には関係しないが、データに慣れるための実践にはこれが良さそう　現在追走中　
@@ -71,7 +72,7 @@ https://medium.com/@manabeel.vet/a-beginners-guide-to-genomic-data-analysis-dive
 # その他リンク
 https://bi.biopapyrus.jp/
 
-##　論文紹介紹介
+# 全く関係ない論文紹介紹介
 言語モデルの物理学　佐藤 竜馬
 https://joisino.hatenablog.com/entry/physics
 「物理法則のような普遍的な法則を言語モデルにおいて見つけるための研究」を物理学実験のように条件を整えて実験を行い観察することで行おう、というもの
